@@ -3,7 +3,12 @@ import subprocess
 
 def create_project(args):
     if args.framework == "django":
-        subprocess.run(["pip", "install", "django"])
+        try:
+            subprocess.run(["pip", "show", "django"], capture_output=True, text=True, check=True)
+        except subprocess.CalledProcessError:
+            print("Django is not installed. We are installing it now.")
+            subprocess.run(["pip", "install", "django"])
+        
         subprocess.run(["django-admin", "startproject", "myproject"])
     elif args.framework == "nextjs":
         print("Creating a Next.js project... Not really tho, still need to code that part")
