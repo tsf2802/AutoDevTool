@@ -27,4 +27,5 @@ def main():
         create_project(args)
 
 if __name__ == "__main__":
+    # run this code by doing 'python src/cli.py init --framework=django' in command line
     main()
