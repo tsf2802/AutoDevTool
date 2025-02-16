@@ -22,12 +22,40 @@ def create_project(args):
 def create_docker_compose_file(reverse_proxy):
     root_directory = "./myproject"
     project_name = "myproject"
-    print(f"version: '3.8'\n\nservices:\n  web:\n    build:\n      context: {root_directory}\n      dockerfile: Dockerfile\n    command: gunicorn {project_name}.wsgi:application --bind 0.0.0.0:8000\n    volumes:\n      - static_volume:/home/app/web/staticfiles\n    expose:\n      - 8000")
+    docker_compose_content = f"""version: '3.8'
+
+services:
+  web:
+    build:
+      context: {root_directory}
+      dockerfile: Dockerfile
+    command: gunicorn {project_name}.wsgi:application --bind 0.0.0.0:8000
+    volumes:
+      - static_volume:/home/app/web/staticfiles
+    expose:
+      - 8000"""
+    
     if check_env_file_exists():
-        print(f"    env_file:\n      - ./.env")
+        docker_compose_content += """
+    env_file:
+      - ./.env"""
+    
     if reverse_proxy == "nginx":
-        # if nginx_folder_exists():
-            print(f"  nginx:\n    build: ./nignx\n    volumes:\n      - static_volume:/home/app/web/staticfiles\n    ports:\n      - 1337:80\n    depends_on:\n      - web\n\nvolumes:\n  static_volume:")
+        docker_compose_content += """
+  nginx:
+    build: ./nignx
+    volumes:
+      - static_volume:/home/app/web/staticfiles
+    ports:
+      - 1337:80
+    depends_on:
+      - web
+
+volumes:
+  static_volume:"""
+
+    with open(f"{root_directory}/docker-compose.yml", 'w') as f:
+        f.write(docker_compose_content)
 
 def check_env_file_exists():
     root_directory = "./myproject"
@@ -47,8 +75,8 @@ def main():
 
     if args.command == "init":
         create_project(args)
-        # create_docker_compose_file("nginx")
+        create_docker_compose_file("nginx")
 
 if __name__ == "__main__":
-    # run this code by doing 'python src/cli.py init --framework=django' in command line
+    # run this code by doing 'python src/cli.py init --framework=django --web-server=nginx' in command line
     main()
