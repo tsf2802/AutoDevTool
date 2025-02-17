@@ -1,0 +1,40 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environment
+env/
+venv/
+
+# Django-specific
+db.sqlite3
+media/
+staticfiles/
+*.log
+*.pot
+*.pyc
+*.pyo
+*.pyd
+
+# Ignore environment variables and secrets
+.env
+.envrc
+*.env
+config/settings/local.py
+
+# Docker-specific
+*.pid
+*.log
+docker-compose.override.yml
+.dockerignore
+app/__pycache__/
+app/migrations/
+
+# VS Code settings
+.vscode/
+.history/
+*.code-workspace
+
+# macOS/Linux
+.DS_Store
