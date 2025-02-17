@@ -56,7 +56,7 @@ services:
     if reverse_proxy == "nginx":
         docker_compose_content += """
   nginx:
-    build: ./nignx
+    build: ./nginx
     volumes:
       - static_volume:/home/app/web/staticfiles
     ports:
