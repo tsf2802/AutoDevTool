@@ -67,6 +67,90 @@ def check_env_file_exists():
     full_path = os.path.join(f"./{root_directory}", ".env")
     return os.path.exists(full_path)
 
+def check_requirements_file_exists():
+    root_directory = "./myproject"
+    full_path = os.path.join(f"./{root_directory}", "requirements.txt")
+    return os.path.exists(full_path)
+
+def create_docker_file(framework):
+    root_directory = "./myproject"
+    if not check_requirements_file_exists():
+        print("requirements.txt not found. We are creating it now.")
+
+        requirements_content = """Django==4.2.3
+gunicorn==21.2.0"""
+
+        with open(f"{root_directory}/requirements.txt", 'w') as f:
+            f.write(requirements_content)
+
+    if framework == "django":
+        docker_file_content = """###########
+# BUILDER #
+###########
+
+# pull official base image
+FROM python:3.11.4-slim-buster as builder
+
+# set work directory
+WORKDIR /usr/src/app
+
+# set environment variables
+ENV PYTHONDONTWRITEBYTECODE 1
+ENV PYTHONUNBUFFERED 1
+
+# install system dependencies
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends gcc
+
+# lint
+RUN pip install --upgrade pip
+RUN pip install flake8==6.0.0
+COPY . /usr/src/app/
+RUN flake8 --ignore=E501,F401 .
+
+# install python dependencies
+COPY ./requirements.txt .
+RUN pip wheel --no-cache-dir --no-deps --wheel-dir /usr/src/app/wheels -r requirements.txt
+
+
+#########
+# FINAL #
+#########
+
+# pull official base image
+FROM python:3.11.4-slim-buster
+
+# create directory for the app user
+RUN mkdir -p /home/app
+
+# create the app user
+RUN addgroup --system app && adduser --system --group app
+
+# create the appropriate directories
+ENV HOME=/home/app
+ENV APP_HOME=/home/app/web
+RUN mkdir $APP_HOME
+WORKDIR $APP_HOME
+
+# install dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends netcat
+COPY --from=builder /usr/src/app/wheels /wheels
+COPY --from=builder /usr/src/app/requirements.txt .
+RUN pip install --upgrade pip
+RUN pip install --no-cache /wheels/*
+
+# copy project
+COPY . $APP_HOME
+
+# chown all the files to the app user
+RUN chown -R app:app $APP_HOME
+
+# change to the app user
+USER app"""
+
+    with open(f"{root_directory}/Dockerfile", 'w') as f:
+        f.write(docker_file_content)
+
 def main():
     parser = argparse.ArgumentParser()
 
@@ -80,6 +164,7 @@ def main():
 
     if args.command == "init":
         create_project(args)
+        create_docker_file(args.framework)
         create_docker_compose_file(args.web_server)
 
 if __name__ == "__main__":
