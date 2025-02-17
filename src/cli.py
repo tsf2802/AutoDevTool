@@ -1,33 +1,41 @@
 import argparse
 import subprocess
 import os
+from dotenv import load_dotenv
 
 def create_project(args):
     #possibly add features for project_name and directory_name
-    root_directory = "./myproject"
     if args.framework == "django":
         try:
             subprocess.run(["pip", "show", "django"], capture_output=True, text=True, check=True)
         except subprocess.CalledProcessError:
             print("Django is not installed. We are installing it now.")
             subprocess.run(["pip", "install", "django"])
-        
-        subprocess.run(["django-admin", "startproject", "myproject"])
-        with open(f"{root_directory}/devtool.config", 'w') as f:
+
+        project_name = args.project_name if not None else "myproject"
+        subprocess.run(["django-admin", "startproject", f"{project_name}"])
+
+        with open("./devtool.config", 'w') as f:
             f.write('FRAMEWORK=django\n')
-            f.write(f"WEB_SERVER={args.web_server}\n")
+            web_server = args.web_server if not None else "nginx"
+            f.write(f"WEB_SERVER={web_server}\n")
+            f.write(f"PROJECT_NAME={project_name}\n")
     elif args.framework == "nextjs":
         print("Creating a Next.js project... Not really tho, still need to code that part")
 
 def create_docker_compose_file(reverse_proxy):
-    root_directory = "./myproject"
-    project_name = "myproject"
+    load_dotenv(dotenv_path="./devtool.config")
+    project_name = os.getenv("PROJECT_NAME")
+
+    if not check_nginx_folder_exists():
+        create_nginx_stuff()
+
     docker_compose_content = f"""version: '3.8'
 
 services:
   web:
     build:
-      context: {root_directory}
+      context: .
       dockerfile: Dockerfile
     command: gunicorn {project_name}.wsgi:application --bind 0.0.0.0:8000"""
 
@@ -38,7 +46,7 @@ services:
     
     docker_compose_content += """
     expose:
-      - 8000"""
+      - 8000:8000"""
     
     if check_env_file_exists():
         docker_compose_content += """
@@ -59,28 +67,71 @@ services:
 volumes:
   static_volume:"""
 
-    with open(f"{root_directory}/docker-compose.yml", 'w') as f:
+    with open(f"{project_name}/docker-compose.yml", 'w') as f:
         f.write(docker_compose_content)
 
+def create_nginx_stuff():
+    load_dotenv(dotenv_path="./devtool.config")
+    project_name = os.getenv("PROJECT_NAME")
+
+    dockerfile_content = """FROM nginx:1.25
+
+RUN rm /etc/nginx/conf.d/default.conf
+COPY nginx.conf /etc/nginx/conf.d"""
+
+    directory = os.path.dirname(f"{project_name}/nginx/Dockerfile")
+    os.makedirs(directory, exist_ok=True)
+    with open(f"{project_name}/nginx/Dockerfile", 'w') as f:
+        f.write(dockerfile_content)
+
+    nginx_conf = f"""upstream {project_name} {{
+    server web:8000;
+}}
+
+server {{
+
+    listen 80;
+
+    location / {{
+        proxy_pass http://{project_name};
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header Host $host;
+        proxy_redirect off;
+    }}
+
+}}"""
+    
+    with open(f"{project_name}/nginx/nginx.conf", 'w') as f:
+        f.write(nginx_conf)
+
+def check_nginx_folder_exists():
+    load_dotenv(dotenv_path="./devtool.config")
+    project_name = os.getenv("PROJECT_NAME")
+    full_path = os.path.join(f"./{project_name}", "nginx")
+    return os.path.exists(full_path)
+
 def check_env_file_exists():
-    root_directory = "./myproject"
-    full_path = os.path.join(f"./{root_directory}", ".env")
+    load_dotenv(dotenv_path="./devtool.config")
+    project_name = os.getenv("PROJECT_NAME")
+    full_path = os.path.join(f"./{project_name}", ".env")
     return os.path.exists(full_path)
 
 def check_requirements_file_exists():
-    root_directory = "./myproject"
-    full_path = os.path.join(f"./{root_directory}", "requirements.txt")
+    load_dotenv(dotenv_path="./devtool.config")
+    project_name = os.getenv("PROJECT_NAME")
+    full_path = os.path.join(f"./{project_name}", "requirements.txt")
     return os.path.exists(full_path)
 
 def create_docker_file(framework):
-    root_directory = "./myproject"
+    load_dotenv(dotenv_path="./devtool.config")
+    project_name = os.getenv("PROJECT_NAME")
     if not check_requirements_file_exists():
         print("requirements.txt not found. We are creating it now.")
 
         requirements_content = """Django==4.2.3
 gunicorn==21.2.0"""
 
-        with open(f"{root_directory}/requirements.txt", 'w') as f:
+        with open(f"{project_name}/requirements.txt", 'w') as f:
             f.write(requirements_content)
 
     if framework == "django":
@@ -99,7 +150,7 @@ ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
 
 # install system dependencies
-RUN apt-get update && \
+RUN apt-get update && \\
     apt-get install -y --no-install-recommends gcc
 
 # lint
@@ -148,7 +199,7 @@ RUN chown -R app:app $APP_HOME
 # change to the app user
 USER app"""
 
-    with open(f"{root_directory}/Dockerfile", 'w') as f:
+    with open(f"{project_name}/Dockerfile", 'w') as f:
         f.write(docker_file_content)
 
 def main():
@@ -159,6 +210,7 @@ def main():
     init_parser = subparsers.add_parser("init")
     init_parser.add_argument("--framework", help="The framework of the project to be initialized. Recommeded to be Django, cause we be like that.")
     init_parser.add_argument("--web-server", help="The web server or reverse proxy of choice. Recommeded to be nginx, cause we be like that.")
+    init_parser.add_argument("--project-name", help="The name of the project to be initialized.")
 
     args = parser.parse_args()
 
@@ -168,5 +220,5 @@ def main():
         create_docker_compose_file(args.web_server)
 
 if __name__ == "__main__":
-    # run this code by doing 'python src/cli.py init --framework=django --web-server=nginx' in command line
+    # run this code by doing 'python src/cli.py init --framework=django --web-server=nginx --project-name=djangoproject' in command line
     main()
