@@ -29,9 +29,14 @@ services:
     build:
       context: {root_directory}
       dockerfile: Dockerfile
-    command: gunicorn {project_name}.wsgi:application --bind 0.0.0.0:8000
+    command: gunicorn {project_name}.wsgi:application --bind 0.0.0.0:8000"""
+
+    if reverse_proxy == "nginx":
+        docker_compose_content += """
     volumes:
-      - static_volume:/home/app/web/staticfiles
+      - static_volume:/home/app/web/staticfiles"""
+    
+    docker_compose_content += """
     expose:
       - 8000"""
     
@@ -75,7 +80,7 @@ def main():
 
     if args.command == "init":
         create_project(args)
-        create_docker_compose_file("nginx")
+        create_docker_compose_file(args.web_server)
 
 if __name__ == "__main__":
     # run this code by doing 'python src/cli.py init --framework=django --web-server=nginx' in command line
