@@ -30,7 +30,7 @@ def main():
 if __name__ == "__main__":
     # run this code by doing 'python src/cli.py init --framework=django' in command line
 
-    client = genai.Client(api_key="AIzaSyCYYYkGXec0Y3sZUpWFH36hw77573VlS0M")
+    client = genai.Client(api_key="")
 
     response = client.models.generate_content(
         model="gemini-2.0-flash",
