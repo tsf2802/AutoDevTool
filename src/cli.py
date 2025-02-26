@@ -2,7 +2,8 @@ import argparse
 import subprocess
 import os
 from dotenv import load_dotenv
-from nextjsdjango import setup_nextjs_frontend, create_django_api_app
+from nextjsdjango import create_django_api_app, setup_nextjs_frontend
+from dev_setup import setup_local_dev
 
 def create_project(args):
     #possibly add features for project_name and directory_name
@@ -215,7 +216,13 @@ def main():
     init_parser.set_defaults(command="init")
 
     frontend_parser = subparsers.add_parser("frontend")
-    frontend_parser.add_argument("--type", default="nextjs", help="Frontend framework type (nextjs)")
+    frontend_parser.add_argument("--type", help="The type of frontend to be initialized. Recommeded to be Next.js, cause we be like that.")
+    frontend_parser.add_argument("--frontend", help="Next.js frontend to be initialized.")
+    frontend_parser.set_defaults(command="frontend")
+
+    # Add local development command
+    local_dev_parser = subparsers.add_parser("local-dev")
+    local_dev_parser.add_argument("--with-vscode", action="store_true", help="Set up VSCode configuration")
 
     args = parser.parse_args()
 
@@ -224,12 +231,12 @@ def main():
         create_docker_file(args.framework)
         create_docker_compose_file(args.web_server)
     elif args.command == "frontend" and args.type == "nextjs":
-        # Call the new NextJS setup function
         setup_nextjs_frontend(args)
-        # Create Django API app if needed
         load_dotenv(dotenv_path="./devtool.config")
         project_name = os.getenv("PROJECT_NAME") or "djangoproject"
         create_django_api_app(project_name)
+    elif args.command == "local-dev":
+        setup_local_dev(args)
 
 if __name__ == "__main__":
     # run this code by doing 'python src/cli.py init --framework=django --web-server=nginx --project-name=djangoproject' in command line
