@@ -218,6 +218,13 @@ def main():
         create_project(args)
         create_docker_file(args.framework)
         create_docker_compose_file(args.web_server)
+    elif args.command == "frontend" and args.type == "nextjs":
+        # Call the new NextJS setup function
+        setup_nextjs_frontend(args)
+        # Create Django API app if needed
+        load_dotenv(dotenv_path="./devtool.config")
+        project_name = os.getenv("PROJECT_NAME") or "djangoproject"
+        create_django_api_app(project_name)
 
 if __name__ == "__main__":
     # run this code by doing 'python src/cli.py init --framework=django --web-server=nginx --project-name=djangoproject' in command line
