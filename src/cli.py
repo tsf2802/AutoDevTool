@@ -2,6 +2,7 @@ import argparse
 import subprocess
 import os
 from dotenv import load_dotenv
+from nextjsdjango import setup_nextjs_frontend, create_django_api_app
 
 def create_project(args):
     #possibly add features for project_name and directory_name
@@ -211,6 +212,10 @@ def main():
     init_parser.add_argument("--framework", help="The framework of the project to be initialized. Recommeded to be Django, cause we be like that.")
     init_parser.add_argument("--web-server", help="The web server or reverse proxy of choice. Recommeded to be nginx, cause we be like that.")
     init_parser.add_argument("--project-name", help="The name of the project to be initialized.")
+    init_parser.set_defaults(command="init")
+
+    frontend_parser = subparsers.add_parser("frontend")
+    frontend_parser.add_argument("--type", default="nextjs", help="Frontend framework type (nextjs)")
 
     args = parser.parse_args()
 
