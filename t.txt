@@ -1,0 +1,20 @@
+def create_project(args):
+    """Creates a new project based on the specified framework.
+    Args:
+        args: An object containing the arguments passed to the function, specifically `args.framework` which specifies the framework to use.
+    Raises:
+        subprocess.CalledProcessError: If a subprocess command fails and `check=True` is used in `subprocess.run`.
+    Returns:
+        None
+    """
+    if args.framework == 'django':
+        try:
+            subprocess.run(['pip', 'show', 'django'], capture_output=True, text=True, check=True)
+        except subprocess.CalledProcessError:
+            print('Django is not installed. We are installing it now.')
+            subprocess.run(['pip', 'install', 'django'])
+        
+        subprocess.run(['django-admin', 'startproject', 'myproject'])
+    elif args.framework == 'nextjs':
+        print('Creating a Next.js project... Not really tho, still need to code that part')
+
