@@ -41,13 +41,15 @@ class DocGenerator():
                      f"{read_files_in_dir(dir)}",
         )
 
-        mdFile = open("DOC.md", "w")
-        mdFile.write(response.text)
-        mdFile.close()
+        readme_path = os.path.join("djangoproject", "README.md")
+        os.makedirs("djangoproject", exist_ok=True)
+        
+        with open(readme_path, "w") as mdFile:
+            mdFile.write(response.text)
 
-        print("Documentation generated successfully!")
+        print(f"Documentation generated successfully in {readme_path}!")
 
     
 if __name__ == "__main__":
     docgen = DocGenerator()
-    docgen.generate_documentation("myproject/myproject")
+    docgen.generate_documentation("djangoproject")
