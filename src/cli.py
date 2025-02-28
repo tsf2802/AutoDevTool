@@ -202,6 +202,71 @@ USER app"""
     with open(f"{project_name}/Dockerfile", 'w') as f:
         f.write(docker_file_content)
 
+def create_ci_cd():
+    load_dotenv(dotenv_path="./devtool.config")
+    if os.getenv("FRAMEWORK") == "django":
+        ci_cd_content = """name: Django CI/CD
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+jobs:
+  test:
+    name: Run Django Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.10"
+
+      - name: Install Dependencies
+        run: |
+          pip install -r requirements.txt
+
+      - name: Run Django Tests
+        run: python manage.py test
+
+  build:
+    name: Build and Push Docker Image
+    runs-on: ubuntu-latest
+    needs: test
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Docker Image
+        run: |
+          docker-compose build
+          echo "✅ Docker image built successfully!"
+
+      - name: Simulate Pushing to Docker Hub
+        run: |
+          echo "🔄 Sending image to Docker Hub..."
+          sleep 2
+          echo "🚀 Successfully pushed image to Docker Hub!"
+"""
+    # write the ci-cd content to the correct file, after making the correct directories
+    load_dotenv(dotenv_path="./devtool.config")
+    project_name = os.getenv("PROJECT_NAME")
+    ci_cd_directory = os.path.join(project_name, ".github", "workflows")
+    os.makedirs(ci_cd_directory, exist_ok=True)
+    ci_cd_file_path = os.path.join(ci_cd_directory, "ci-cd.yml")
+    with open(ci_cd_file_path, 'w', encoding='utf-8') as f:
+        f.write(ci_cd_content)
+
 def main():
     parser = argparse.ArgumentParser()
 
@@ -218,6 +283,7 @@ def main():
         create_project(args)
         create_docker_file(args.framework)
         create_docker_compose_file(args.web_server)
+        create_ci_cd()
 
 if __name__ == "__main__":
     # run this code by doing 'python src/cli.py init --framework=django --web-server=nginx --project-name=djangoproject' in command line
