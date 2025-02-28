@@ -20,6 +20,7 @@ def create_project(args):
             web_server = args.web_server if not None else "nginx"
             f.write(f"WEB_SERVER={web_server}\n")
             f.write(f"PROJECT_NAME={project_name}\n")
+            f.write(f"CONTEXT={args.context}\n")
     elif args.framework == "nextjs":
         print("Creating a Next.js project... Not really tho, still need to code that part")
 
@@ -208,9 +209,10 @@ def main():
     subparsers = parser.add_subparsers(dest="command")
     
     init_parser = subparsers.add_parser("init")
-    init_parser.add_argument("--framework", help="The framework of the project to be initialized. Recommeded to be Django, cause we be like that.")
+    init_parser.add_argument("--framework", required=True, help="The framework of the project to be initialized. Recommeded to be Django, cause we be like that.")
     init_parser.add_argument("--web-server", help="The web server or reverse proxy of choice. Recommeded to be nginx, cause we be like that.")
     init_parser.add_argument("--project-name", help="The name of the project to be initialized.")
+    init_parser.add_argument("--context", help="The context of the project to be initialized.")
 
     args = parser.parse_args()
 
@@ -221,4 +223,5 @@ def main():
 
 if __name__ == "__main__":
     # run this code by doing 'python src/cli.py init --framework=django --web-server=nginx --project-name=djangoproject' in command line
+    # NOTE: when adding --context, make sure to add qoutes ("") if you have spaces in your sentences isnetad of just one word. Ex: --context="hello this project is called devtool" 
     main()
