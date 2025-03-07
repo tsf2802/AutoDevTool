@@ -60,7 +60,7 @@ class DocGenerator():
         # Check the CONTEXT in devtool.config and add it to the prompt if applicable.
         context = get_context()
         if context and context != "None":
-            prompt += f"\n\nContext:\n{context}"
+            prompt += f"\n\nTailor the documentaion to account the follo project:\n{context}"
 
         response = self.client.models.generate_content(
             model="gemini-2.0-flash",
