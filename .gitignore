@@ -1,1 +1,37 @@
 src/.env
+
+# Project specific
+djangoproject/
+
+# Django
+*.log
+*.pot
+*.pyc
+__pycache__/
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+media/
+
+# Django environment
+.env
+venv/
+env/
+ENV/
+
+# Django static files
+static/
+staticfiles/
+
+# Django migrations
+*/migrations/*.py
+!*/migrations/__init__.py
+
+# Django test coverage
+htmlcov/
+.tox/
+.coverage
+.coverage.*
+.cache
+coverage.xml
+*.cover

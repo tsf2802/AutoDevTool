@@ -1,13 +1,15 @@
 import argparse
 import subprocess
+from google import genai
 import os
 from dotenv import load_dotenv
+from docgenerator import DocGenerator
 
 def create_project(args):
     #possibly add features for project_name and directory_name
     if args.framework == "django":
         try:
-            subprocess.run(["pip", "show", "django"], capture_output=True, text=True, check=True)
+            subprocess.run(['pip', 'show', 'django'], capture_output=True, text=True, check=True)
         except subprocess.CalledProcessError:
             print("Django is not installed. We are installing it now.")
             subprocess.run(["pip", "install", "django"])
@@ -220,8 +222,14 @@ def main():
         create_project(args)
         create_docker_file(args.framework)
         create_docker_compose_file(args.web_server)
+        
+        # Generate documentation after project creation
+        print("\nGenerating project documentation...")
+        docgen = DocGenerator()
+        docgen.generate_documentation("djangoproject")
 
 if __name__ == "__main__":
     # run this code by doing 'python src/cli.py init --framework=django --web-server=nginx --project-name=djangoproject' in command line
     # NOTE: when adding --context, make sure to add qoutes ("") if you have spaces in your sentences isnetad of just one word. Ex: --context="hello this project is called devtool" 
+    load_dotenv("src/.env")
     main()

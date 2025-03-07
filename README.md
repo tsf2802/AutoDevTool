@@ -16,13 +16,27 @@ This solution aims to significantly accelerate project onboarding, improve consi
 - Enhanced team collaboration
 
 ## Getting Started
-[Coming soon]
+*DO NOT SKIP THESE CRUCIAL SETUP STEPS*
+
+a .env file should be made at the root of the project: SWEN356\.env
+within this file you should declare your api key like API_KEY=apikeyherenoquotes
+
+Download Docker Desktop if you don't have it
+Open Docker Desktop
+
+from: SWEN356
+
+python src/cli.py init --framework=django --web-server=nginx --project-name=djangoproject
+
+cd SWEN356\djangoproject
+
+docker-compose build
+
+docker-compose up -d
+go to http://localhost:1337:80
+
+
 
 ## Documentation
 [Coming soon]
 
-## Contributing
-[Coming soon]
-
-## License
-[Coming soon]
