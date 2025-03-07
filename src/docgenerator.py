@@ -22,6 +22,23 @@ def read_files_in_dir(dir):
         return None
     return file_contents
 
+# New helper function to get context from devtool.config
+def get_context(config_path="devtool.config"):
+    try:
+        with open(config_path, "r") as config_file:
+            for line in config_file:
+                if line.startswith("CONTEXT="):
+                    # Extract the value after 'CONTEXT=' and strip any whitespace/newlines.
+                    context_value = line.split("=", 1)[1].strip()
+                    return context_value
+    except FileNotFoundError:
+        print(f"Config file {config_path} not found.")
+        return None
+    except Exception as e:
+        print(f"Error reading config file: {e}")
+        return None
+    return None
+
 class DocGenerator():
     def __init__(self):
         self.client = genai.Client(api_key=api_key)
@@ -30,15 +47,24 @@ class DocGenerator():
 
         print("Generating documentation...")
 
+        # Prepare the base prompt for generating documentation.
+        prompt = (
+            "Based on the given code in my project, please generate a documentation for the codebase. "
+            "Please note it needs to be able to be placed in an MD file. Ignore sensitive information. "
+            "Please note that it shouldn't have code. Include information that will help user expand on given template. "
+            "It's getting written into an MD file. Please don't have the ```."
+            "\n\nCode:\n"
+            f"{read_files_in_dir(dir)}"
+        )
+
+        # Check the CONTEXT in devtool.config and add it to the prompt if applicable.
+        context = get_context()
+        if context and context != "None":
+            prompt += f"\n\nContext:\n{context}"
+
         response = self.client.models.generate_content(
             model="gemini-2.0-flash",
-            contents=f"Based on the given code in my project, "
-                     f"please generate a documentation for the codebase. Please note"
-                     f"it needs to be able to be placed in an MD file. Ignore sensitive information."
-                     f"Please note that it shouldn't have code. Include information that will help user expand on given template."
-                     f"It's getting written into an MD file. Please don't have the ```."
-                     f"\n\nCode:\n"
-                     f"{read_files_in_dir(dir)}",
+            contents=prompt,
         )
 
         readme_path = os.path.join("djangoproject", "README.md")
