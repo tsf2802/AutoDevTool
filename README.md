@@ -15,28 +15,41 @@ This solution aims to significantly accelerate project onboarding, improve consi
 - Customizable project templates
 - Enhanced team collaboration
 
-## Getting Started
-*DO NOT SKIP THESE CRUCIAL SETUP STEPS*
+## Prerequisites
+- Docker Desktop
+- Python environment
+- Google Gemini API key
 
-a .env file should be made at the root of the project: SWEN356\.env
-within this file you should declare your api key like API_KEY=apikeyherenoquotes
+## Environment Setup
+1. Create a `.env` file in the root directory (SWEN356/.env)
+2. Add your API key:
+   ```
+   API_KEY=your_api_key_here
+   ```
+3. Ensure Docker Desktop is running
 
-Download Docker Desktop if you don't have it
-Open Docker Desktop
+## Usage
+1. Navigate to the project base folder
+2. Run the initialization command:
+   ```bash
+   python src/cli.py init --framework=django --web-server=nginx --project-name=djangoproject
+   ```
+   Optional: Add project context with `--context="project description"`
 
-from: SWEN356
+## Deployment
+1. Navigate to your project directory:
+   ```bash
+   cd SWEN356/djangoproject
+   ```
+2. Build and run the Docker containers:
+   ```bash
+   docker-compose build
+   docker-compose up -d
+   ```
+3. Access the application at `http://localhost:1337`
 
-python src/cli.py init --framework=django --web-server=nginx --project-name=djangoproject
+## Notes
+- The project name can be customized, but ensure to update `.gitignore` accordingly
+- For environment issues, consider using a fresh virtual environment with clean dependencies
 
-cd SWEN356\djangoproject
-
-docker-compose build
-
-docker-compose up -d
-go to http://localhost:1337:80
-
-
-
-## Documentation
-[Coming soon]
 
